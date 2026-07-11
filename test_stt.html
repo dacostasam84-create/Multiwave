@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiwave — Test STT Temps Réel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+  :root {
+    --bg: #0a0a0f; --surface: #13131a; --border: #1e1e2e;
+    --accent: #00e5ff; --accent2: #7c3aed; --text: #e2e8f0;
+    --muted: #64748b; --danger: #ff4444; --success: #00ff88;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px;
+  }
+  body::before {
+    content: ''; position: fixed; top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 60% 20%, rgba(0,229,255,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(124,58,237,0.05) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { width: 100%; max-width: 800px; position: relative; z-index: 1; }
+  header { text-align: center; margin-bottom: 48px; }
+  .logo { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); font-family: 'Space Mono', monospace; margin-bottom: 16px; }
+  h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 800;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-top: 10px; font-family: 'Space Mono', monospace; }
+  .status-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; margin-bottom: 24px; font-family: 'Space Mono', monospace; font-size: 12px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: all 0.3s; }
+  .status-dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-dot.recording { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+  .status-text { color: var(--muted); }
+  .status-text span { color: var(--text); }
+  .config-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); font-family: 'Space Mono', monospace; }
+  input, select { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface); }
+<style>
+  .controls { display: flex; gap: 12px; margin-bottom: 24px; }
+  .btn { flex: 1; padding: 14px 24px; border-radius: 10px; border: none; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,255,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: rgba(255,68,68,0.1); }
+  .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+  .waveform-container { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; height: 80px; display: flex; align-items: center; }
+  canvas { width: 100%; height: 100%; }
+  .transcriptions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .transcriptions-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .clear-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-family: 'Space Mono', monospace; font-size: 11px; padding: 4px 8px; border-radius: 4px; }
+  .clear-btn:hover { color: var(--text); }
+  .transcriptions-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; min-height: 300px; max-height: 400px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .transcriptions-box::-webkit-scrollbar { width: 4px; }
+  .transcriptions-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--muted); gap: 12px; font-family: 'Space Mono', monospace; font-size: 12px; text-align: center; }
+  .empty-icon { font-size: 32px; opacity: 0.3; }
+  .transcription-item { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; animation: slideIn 0.3s ease; border-left: 3px solid var(--accent2); }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .transcription-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .lang-badge { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); border-radius: 4px; padding: 2px 8px; font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; }
+  .time-badge { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; margin-left: auto; }
+  .transcription-original { color: var(--muted); font-size: 13px; margin-bottom: 6px; font-family: 'Space Mono', monospace; }
+  .transcription-translated { color: var(--text); font-size: 15px; font-weight: 600; line-height: 1.5; }
+  .log-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-top: 16px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); max-height: 100px; overflow-y: auto; line-height: 1.8; }
+  .log-entry { display: flex; gap: 8px; }
+  .log-time { color: var(--accent2); opacity: 0.6; flex-shrink: 0; }
+  .log-success .log-msg { color: var(--success); }
+  .log-error .log-msg { color: var(--danger); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">Multiwave — Test Interface</div>
+    <h1>STT Temps Réel</h1>
+    <p class="subtitle">Transcription & traduction via Whisper + WebSocket</p>
+  </header>
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text">Serveur : <span id="statusText">Déconnecté</span></div>
+    <div style="margin-left:auto; display:flex; gap:16px;">
+      <div class="status-text">Room : <span id="roomText">—</span></div>
+      <div class="status-text">Mode : <span id="modeText">—</span></div>
+    </div>
+  </div>
+  <div class="config-panel">
+    <div class="field"><label>Serveur Node.js</label><input type="text" id="serverUrl" value="http://127.0.0.1:3000" /></div>
+    <div class="field"><label>Room ID</label><input type="text" id="roomId" value="room_test_1" /></div>
+    <div class="field"><label>User ID</label><input type="text" id="userId" value="1" /></div>
+    <div class="field"><label>Langue cible</label>
+      <select id="targetLang">
+        
+        
+<select id="targetLang">
+  <option value="fr">🇫🇷 Français</option>
+  <option value="en">🇬🇧 Anglais</option>
+  <option value="ar">🌍 Arabe (Universel)</option>
+  <option value="ar-MA">🇲🇦 Darija (Maroc)</option>
+  <option value="ar-SA">🇸🇦 Arabe (Arabie Saoudite)</option>
+  <option value="es">🇪🇸 Espagnol</option>
+  <option value="it">🇮🇹 Italien</option>
+  <option value="pt">🇵🇹 Portugais</option>
+  <option value="ru">🇷🇺 Russe</option>
+  <option value="zh">🇨🇳 Chinois</option>
+  <option value="ja">🇯🇵 Japonais</option>
+  <option value="tr">🇹🇷 Turc</option>
+  <option value="hi">🇮🇳 Hindi</option>
+  <option value="no">🇳🇴 Norvégien</option>
+  <option value="sv">🇸🇪 Suédois</option>
+  <option value="da">🇩🇰 Danois</option>
+  <option value="fi">🇫🇮 Finnois</option>
+  <option value="he">🇮🇱 Hébreu</option>
+  <option value="de">🇩🇪 Allemand</option>
+  <option value="ko">🇰🇷 Coréen</option>
+  <option value="nl">🇳🇱 Néerlandais</option>
+  <option value="pl">🇵🇱 Polonais</option>
+  <option value="el">🇬🇷 Grec</option>
+</select>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="btn btn-primary" id="connectBtn" onclick="connectSocket()">Connecter</button>
+    <button class="btn btn-primary" id="startBtn" onclick="startRecording()" disabled>🎤 Enregistrer</button>
+    <button class="btn btn-danger" id="stopBtn" onclick="stopRecording()" disabled>⏹ Arrêter</button>
+    <button class="btn btn-secondary" onclick="testDirect()">Test Direct</button>
+  </div>
+  <div class="waveform-container"><canvas id="waveform"></canvas></div>
+  <div class="transcriptions-header">
+    <div class="transcriptions-title">Transcriptions</div>
+    <button class="clear-btn" onclick="clearTranscriptions()">Effacer tout</button>
+  </div>
+  <div class="transcriptions-box" id="transcriptionsBox">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🎙</div>
+      <div>En attente d'audio...</div>
+    </div>
+  </div>
+  <div class="log-box" id="logBox"></div>
+</div>
+<script>
+let socket = null;
+let mediaRecorder = null;
+let audioContext = null;
+let analyser = null;
+let animationId = null;
+let intervalId = null;
+
+function connectSocket() {
+  const url = document.getElementById('serverUrl').value;
+  const roomId = document.getElementById('roomId').value;
+  const userId = document.getElementById('userId').value;
+  if (socket) socket.disconnect();
+  log('Connexion à ' + url + '...', 'info');
+  socket = io(url, { transports: ['websocket', 'polling'] });
+  socket.on('connect', () => {
+    setStatus('connected', 'Connecté');
+    document.getElementById('roomText').textContent = roomId;
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('connectBtn').textContent = 'Connecté ✓';
+    log('Connecté ! Socket ID: ' + socket.id, 'success');
+    socket.emit('join-room', { roomId, userId: parseInt(userId) });
+    log('Rejoint la room: ' + roomId, 'success');
+  });
+  socket.on('disconnect', () => {
+    setStatus('disconnected', 'Déconnecté');
+    document.getElementById('startBtn').disabled = true;
+    log('Déconnecté', 'error');
+  });
+  socket.on('user-joined', (data) => { log('User ' + data.userId + ' a rejoint la room', 'info'); });
+  socket.on('transcription', (data) => { addTranscription(data); });
+  socket.on('transcription-error', (err) => { log('Erreur: ' + err.message, 'error'); });
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setupWaveform(stream);
+    const chunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const arrayBuffer = await blob.arrayBuffer();
+      sendAudioChunk(arrayBuffer);
+      chunks.length = 0;
+    };
+    mediaRecorder.start();
+    intervalId = setInterval(() => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        setTimeout(() => { if (mediaRecorder) mediaRecorder.start(); }, 100);
+      }
+    }, 3000);
+    setStatus('recording', 'Enregistrement...');
+    document.getElementById('modeText').textContent = '🔴 Live';
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = false;
+    log('Enregistrement démarré', 'success');
+  } catch (err) { log('Erreur microphone: ' + err.message, 'error'); }
+}
+
+function stopRecording() {
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t => t.stop()); mediaRecorder = null; }
+  if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+  setStatus('connected', 'Connecté');
+  document.getElementById('modeText').textContent = '—';
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  log('Enregistrement arrêté', 'info');
+}
+
+function sendAudioChunk(arrayBuffer) {
+  if (!socket || !socket.connected) return;
+  const roomId = document.getElementById('roomId').value;
+  const userId = document.getElementById('userId').value;
+  const targetLang = document.getElementById('targetLang').value;
+  socket.emit('audio-chunk', { roomId, userId: parseInt(userId), audioBuffer: arrayBuffer, targetLang });
+  log('Chunk envoyé (' + Math.round(arrayBuffer.byteLength / 1024) + ' KB)', 'info');
+}
+
+async function testDirect() {
+  try {
+    const response = await fetch('http://127.0.0.1:3000/health');
+    const data = await response.json();
+    log('Serveur OK: ' + data.status, 'success');
+  } catch (err) { log('Erreur: ' + err.message, 'error'); }
+}
+
+function setupWaveform(stream) {
+  audioContext = new AudioContext();
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 256;
+  const source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+  const canvas = document.getElementById('waveform');
+  const ctx = canvas.getContext('2d');
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  function draw() {
+    animationId = requestAnimationFrame(draw);
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    analyser.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const barWidth = (canvas.width / bufferLength) * 2.5;
+    let x = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      const barHeight = (dataArray[i] / 255) * canvas.height;
+      ctx.fillStyle = `rgba(0,229,255,${0.4 + (dataArray[i]/255)*0.6})`;
+      ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+      x += barWidth;
+    }
+  }
+  draw();
+}
+
+function addTranscription(data) {
+  const box = document.getElementById('transcriptionsBox');
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.remove();
+  const time = new Date().toLocaleTimeString('fr-FR');
+  const item = document.createElement('div');
+  item.className = 'transcription-item';
+  item.innerHTML = `
+    <div class="transcription-meta">
+      <span class="lang-badge">${data.detected_language || '?'}</span>
+      <span style="color:var(--accent)">→</span>
+      <span class="lang-badge" style="background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.2)">${data.target_language || '?'}</span>
+      <span class="time-badge">${time}</span>
+    </div>
+    <div class="transcription-original">📝 ${data.original || '...'}</div>
+    <div class="transcription-translated">🌍 ${data.translated || '...'}</div>`;
+  box.appendChild(item);
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearTranscriptions() {
+  document.getElementById('transcriptionsBox').innerHTML = `<div class="empty-state" id="emptyState"><div class="empty-icon">🎙</div><div>En attente d'audio...</div></div>`;
+}
+
+function setStatus(type, text) {
+  document.getElementById('statusDot').className = 'status-dot ' + type;
+  document.getElementById('statusText').textContent = text;
+}
+
+function log(msg, type = 'info') {
+  const box = document.getElementById('logBox');
+  const time = new Date().toLocaleTimeString('fr-FR');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry log-' + type;
+  entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-msg"> ${msg}</span>`;
+  box.appendChild(entry);
+  box.scrollTop = box.scrollHeight;
+}
+</script>
+</body>
+</html>

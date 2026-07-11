@@ -1,0 +1,19 @@
+INFO:     Started server process [11212]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:5000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57457 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52388 - "GET /stt/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52389 - "GET /traduction/ HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:52390 - "GET /audio/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52391 - "GET /video/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52392 - "POST /traduction/?text=bonjour HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61461 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61461 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61080 - "GET /audio/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63653 - "POST /audio/transcribe HTTP/1.1" 404 Not Found
+forrtl: error (200): program aborting due to window-CLOSE event
+Image              PC                Routine            Line        Source             
+KERNELBASE.dll     00007FFE04C79DED  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFE063BE8D7  Unknown               Unknown  Unknown
+ntdll.dll          00007FFE0732C48C  Unknown               Unknown  Unknown

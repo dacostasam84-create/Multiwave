@@ -1,0 +1,7 @@
+content = open('C:/Multiwave/backend/src/services/Stt.service.js').read()
+content = content.replace("const axios = require('axios');", "const axios = require('axios');\nconst STT = require('../models/STT.model');\nconst User = require('../models/Users.model');")
+content = content.replace('await db.STT.create(', 'await STT.create(')
+content = content.replace('await db.STT.findAll(', 'await STT.findAll(')
+content = content.replace('{ model: db.User,', '{ model: User,')
+open('C:/Multiwave/backend/src/services/Stt.service.js', 'w').write(content)
+print('OK - fichier corrige')

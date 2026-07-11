@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const authMiddleware = require('../middlewares/auth.middleware');
+const AudioController = require('../controllers/audio.controller');
+const multer = require('multer');
+const audioUpload = multer({ dest: 'uploads/audio/' });
+router.post('/upload', authMiddleware, audioUpload.single('audio'), AudioController.upload);
+router.get('/me', authMiddleware, AudioController.getMyAudios);
+router.delete('/:id', authMiddleware, AudioController.remove);
+module.exports = router;

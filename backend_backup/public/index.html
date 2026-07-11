@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test Appel Vidéo — Multiwave</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 16px; color:#222; }
+    h2 { margin-top: 0; }
+    #controls { margin-bottom: 12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    video { width: 240px; height: 180px; background: #000; margin: 6px; border-radius:6px; object-fit:cover; }
+    #videos { display:flex; flex-wrap:wrap; }
+    #localVideo { outline: 3px solid #4caf50; }
+    button { padding:8px 10px; border-radius:6px; border:1px solid #ccc; background:#f7f7f7; cursor:pointer; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    input { padding:8px; border-radius:6px; border:1px solid #ccc; min-width:200px; }
+    #roomLabel { font-weight: bold; margin-left:8px; }
+    #timer { font-weight: bold; color: #b00; margin-left: 12px; }
+    #log { margin-top:12px; font-size:13px; color:#666; max-width:960px; }
+  </style>
+</head>
+<body>
+  <h2>Appel Vidéo — Test rapide (Multiwave)</h2>
+
+  <div id="controls">
+    <label>
+      Room ID:
+      <input id="roomIdInput" placeholder="générer ou coller" />
+    </label>
+
+    <button id="generateBtn">Générer</button>
+    <button id="joinBtn">Rejoindre / Démarrer</button>
+    <button id="leaveBtn" disabled>Quitter</button>
+
+    <button id="toggleMicBtn" disabled>Micro OFF</button>
+    <button id="toggleCamBtn" disabled>Cam OFF</button>
+
+    <span id="roomLabel"></span>
+    <span id="timer"></span>
+  </div>
+
+  <h4>Vidéos</h4>
+  <div id="videos">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <!-- Les vidéos distantes seront ajoutées ici -->
+  </div>
+
+  <div id="log"></div>
+
+  <!-- libs -->
+  <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <script>
+  (function () {
+    // --- CONFIG ---
+    const SIGNAL_EVENT = 'signal';
+    const JOIN_EVENT = 'joinRoom';
+    const LEAVE_EVENT = 'leaveRoom';
+
+    // Si ton serveur tourne sur une autre origine, remplace par l'URL (ex: 'http://localhost:3000')
+    const SERVER_URL = location.origin;
+
+    // --- SOCKET & PEERS ---
+    const socket = io(SERVER_URL, { autoConnect: true });
+    const peers = {}; // peerId -> { peer, videoEl }
+
+    let localStream = null;
+    let roomId = null;
+    let selfId = null;
+    let timerInterval = null;
+    let elapsedSeconds = 0;
+    const MAX_CALL_SECONDS = 15 * 60; // 15 minutes
+
+    // DOM
+    const localVideo = document.getElementById('localVideo');
+    const videos = document.getElementById('videos');
+    const roomInput = document.getElementById('roomIdInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const joinBtn = document.getElementById('joinBtn');
+    const leaveBtn = document.getElementById('leaveBtn');
+    const toggleMicBtn = document.getElementById('toggleMicBtn');
+    const toggleCamBtn = document.getElementById('toggleCamBtn');
+    const roomLabel = document.getElementById('roomLabel');
+    const timerLabel = document.getElementById('timer');
+    const logEl = document.getElementById('log');
+
+    function log(msg) {
+      console.log(msg);
+      const p = document.createElement('div');
+      p.textContent = msg;
+      logEl.appendChild(p);
+      if (logEl.children.length > 50) logEl.removeChild(logEl.firstChild);
+    }
+
+    // format mm:ss
+    function fmtTime(sec) {
+      const m = Math.floor(sec/60).toString().padStart(2,'0');
+      const s = (sec%60).toString().padStart(2,'0');
+      return `${m}:${s}`;
+    }
+
+    generateBtn.onclick = () => {
+      const id = Math.random().toString(36).slice(2, 10);
+      roomInput.value = id;
+    };
+
+    // --- media ---
+    async function startLocalMedia() {
+      if (localStream) return localStream;
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = localStream;
+        toggleMicBtn.disabled = false;
+        toggleCamBtn.disabled = false;
+        toggleMicBtn.textContent = 'Micro OFF';
+        toggleCamBtn.textContent = 'Cam OFF';
+        return localStream;
+      } catch (err) {
+        alert('Erreur accès micro/caméra : ' + (err.message || err));
+        throw err;
+      }
+    }
+
+    toggleMicBtn.onclick = () => {
+      if (!localStream) return;
+      const t = localStream.getAudioTracks()[0];
+      if (!t) return;
+      t.enabled = !t.enabled;
+      toggleMicBtn.textContent = t.enabled ? 'Micro OFF' : 'Micro ON';
+    };
+
+    toggleCamBtn.onclick = () => {
+      if (!localStream) return;
+      const t = localStream.getVideoTracks()[0];
+      if (!t) return;
+      t.enabled = !t.enabled;
+      toggleCamBtn.textContent = t.enabled ? 'Cam OFF' : 'Cam ON';
+    };
+
+    // create remote video element
+    function createRemoteVideoEl(peerId) {
+      const v = document.createElement('video');
+      v.id = 'remote_' + peerId;
+      v.autoplay = true;
+      v.playsInline = true;
+      v.width = 240;
+      v.height = 180;
+      v.style.borderRadius = '6px';
+      videos.appendChild(v);
+      return v;
+    }
+
+    function removeRemoteVideoEl(peerId) {
+      const el = document.getElementById('remote_' + peerId);
+      if (el) el.remove();
+    }
+
+    // create peer
+    function createPeer(remoteId, initiator) {
+      const Peer = window.SimplePeer;
+      const p = new Peer({
+        initiator,
+        trickle: true,
+        stream: localStream
+      });
+
+      p.on('signal', data => {
+        const payload = { type: 'peer-signal', from: selfId, to: remoteId, signal: data };
+        socket.emit(SIGNAL_EVENT, { roomId, data: payload });
+      });
+
+      p.on('stream', stream => {
+        let v = document.getElementById('remote_' + remoteId);
+        if (!v) v = createRemoteVideoEl(remoteId);
+        v.srcObject = stream;
+      });
+
+      p.on('close', () => {
+        if (peers[remoteId]) {
+          try { peers[remoteId].peer.destroy && peers[remoteId].peer.destroy(); } catch(e) {}
+          delete peers[remoteId];
+        }
+        removeRemoteVideoEl(remoteId);
+      });
+
+      p.on('error', (err) => {
+        console.warn('Peer error', err);
+        log('Peer error: ' + err);
+      });
+
+      return p;
+    }
+
+    // socket handlers
+    socket.on('connect', () => {
+      selfId = socket.id;
+      log('Socket connecté: ' + selfId);
+    });
+
+    socket.on('connect_error', (err) => {
+      log('Erreur connexion socket: ' + err.message);
+    });
+
+    socket.on(SIGNAL_EVENT, ({ roomId: r, data }) => {
+      if (r !== roomId) return;
+      if (!data || !data.type) return;
+
+      if (data.type === 'peer-signal') {
+        const from = data.from;
+        const to = data.to;
+        const signal = data.signal;
+        if (to && to !== selfId) return;
+
+        if (!peers[from]) {
+          peers[from] = { peer: createPeer(from, false), videoEl: null };
+        }
+        try { peers[from].peer.signal(signal); } catch (err) { console.error(err); }
+        return;
+      }
+
+      if (data.type === 'announce') {
+        const otherId = data.from;
+        if (otherId === selfId) return;
+        if (!peers[otherId]) {
+          peers[otherId] = { peer: createPeer(otherId, true), videoEl: null };
+        }
+        return;
+      }
+    });
+
+    // join room flow
+    async function joinRoom() {
+      roomId = (roomInput.value || '').trim();
+      if (!roomId) return alert('Renseigne un roomId ou génère-en un.');
+
+      try {
+        await startLocalMedia();
+      } catch { return; }
+
+      socket.emit(JOIN_EVENT, { roomId });
+
+      // small delay then announce
+      setTimeout(() => {
+        socket.emit(SIGNAL_EVENT, { roomId, data: { type: 'announce', from: selfId }});
+      }, 200);
+
+      // UI
+      joinBtn.disabled = true;
+      leaveBtn.disabled = false;
+      roomLabel.textContent = 'Room: ' + roomId;
+      startTimer();
+      log('Rejoint la room: ' + roomId);
+    }
+
+    function leaveRoom() {
+      if (!roomId) return;
+      socket.emit(LEAVE_EVENT, { roomId });
+
+      Object.keys(peers).forEach(pid => {
+        try { peers[pid].peer.destroy && peers[pid].peer.destroy(); } catch(e) {}
+        removeRemoteVideoEl(pid);
+      });
+      for (const k in peers) delete peers[k];
+
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
+        localVideo.srcObject = null;
+      }
+
+      joinBtn.disabled = false;
+      leaveBtn.disabled = true;
+      toggleMicBtn.disabled = true;
+      toggleCamBtn.disabled = true;
+      roomLabel.textContent = '';
+      stopTimer();
+      log('Quitte la room: ' + roomId);
+      roomId = null;
+    }
+
+    joinBtn.onclick = joinRoom;
+    leaveBtn.onclick = leaveRoom;
+
+    // Timer
+    function startTimer() {
+      elapsedSeconds = 0;
+      timerLabel.textContent = fmtTime(elapsedSeconds);
+      timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        timerLabel.textContent = fmtTime(elapsedSeconds);
+        if (elapsedSeconds >= MAX_CALL_SECONDS) {
+          alert('Durée max atteinte — fin de l’appel');
+          leaveRoom();
+        }
+      }, 1000);
+    }
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerLabel.textContent = '';
+    }
+
+    // cleanup if user closes tab
+    window.addEventListener('beforeunload', () => {
+      if (roomId) socket.emit(LEAVE_EVENT, { roomId });
+    });
+
+  })();
+  </script>
+</body>
+</html>

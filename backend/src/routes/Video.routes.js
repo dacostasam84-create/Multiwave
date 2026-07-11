@@ -1,0 +1,10 @@
+'use strict';
+const express = require('express');
+const router = express.Router();
+const authMiddleware = require('../middlewares/auth.middleware');
+const VideoController = require('../controllers/video.controller');
+router.post('/upload', authMiddleware, VideoController.upload);
+router.delete('/:id', authMiddleware, VideoController.remove);
+router.get('/', VideoController.getAll);
+router.get('/:id', VideoController.getById);
+module.exports = router;
