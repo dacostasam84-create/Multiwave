@@ -230,8 +230,8 @@ export default function NotificationBell({ socket, userId }) {
       {/* Panel notifications */}
       {open && (
         <div style={{
-          position:'absolute', right:0, top:36, zIndex:500,
-          width:360, maxHeight:520,
+          position:'fixed', right:16, top:60, zIndex:500,
+          width:380, maxHeight:520,
           background:'#0d0d18',
           border:'1px solid rgba(201,168,76,0.2)',
           borderRadius:14,

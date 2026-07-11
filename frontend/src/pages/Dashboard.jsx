@@ -442,7 +442,7 @@ export default function Dashboard() {
                   <span style={{ color:'#475569', fontSize:10 }}>{connected ? t('online') : t('offline')}</span>
                 </div>
               </div>
-              <NotificationBell socket={socket} userId={user?.userId}/>
+              
             </div>
           </div>
         )}
@@ -512,7 +512,7 @@ export default function Dashboard() {
                 <span style={{ color:'#475569', fontSize:11, fontFamily:'monospace' }}>{connected ? t('online') : t('offline')}</span>
               </div>
             )}
-            <ThemeToggle/>
+            <NotificationBell socket={socket} userId={user?.userId}/><ThemeToggle/>
           </div>
         </header>
 
