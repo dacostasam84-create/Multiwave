@@ -1,6 +1,6 @@
 // src/services/brand
 // .service.js
-const BrandModel = require("../models/Brand.model"); // ton model Brand
+const db = require("../models"); // ton model Brand
 
 class BrandsService {
   // Créer une nouvelle marque

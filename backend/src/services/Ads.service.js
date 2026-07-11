@@ -1,5 +1,5 @@
 // src/services/Ads.service.js
-const AdsModel = require("../models/Ads.model");   // ton model Ads
+const db = require("../models");   // ton model Ads
 class AdsService {
   static async createAd(data) {
     return await db.Ad.create(data);
