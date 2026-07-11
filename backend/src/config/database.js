@@ -2,13 +2,13 @@ require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(
-  process.env.MYSQL_DATABASE || "multiwave",
-  process.env.MYSQL_USER || "postgres",
+  process.env.MYSQL_DB || "multiwave",
+  process.env.MYSQL_USER || "root",
   process.env.MYSQL_PASSWORD || "",
   {
-    host: process.env.MYSQL_HOST || "127.0.0.1",
-    port: process.env.MYSQL_PORT || 5433,
-    dialect: "postgres",
+    host: process.env.MYSQL_HOST || "localhost",
+    port: parseInt(process.env.MYSQL_PORT) || 3306,
+    dialect: "mysql",
     logging: false,
     timezone: "+00:00",
     define: {
@@ -27,7 +27,7 @@ const sequelize = new Sequelize(
 async function connectDB() {
   try {
     await sequelize.authenticate();
-    console.log("✅ Sequelize PostgreSQL connecté avec succès");
+    console.log("✅ Sequelize MySQL connecté avec succès");
   } catch (error) {
     console.error("❌ Erreur connexion Sequelize:", error.message);
   }
