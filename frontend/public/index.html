@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#C9A84C" />
+    <meta name="background-color" content="#070710" />
+
+    <!-- SEO -->
+    <meta name="description" content="Multiwave — La plateforme sociale qui connecte le monde entier. Feed, Messages, Marketplace, Jobs, Dating et bien plus." />
+    <meta name="keywords" content="multiwave, social, réseau, feed, messages, marketplace, jobs, dating" />
+    <meta name="author" content="Zahnouni Issam" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Multiwave — Connect · Explore" />
+    <meta property="og:description" content="La plateforme sociale qui connecte le monde entier." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
+
+    <!-- Apple PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Multiwave" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <title>Multiwave — Connect · Explore</title>
+
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #070710;
+        color: #e2e8f0;
+        font-family: 'Outfit', 'DM Sans', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+      #root { min-height: 100vh; }
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: #070710; }
+      ::-webkit-scrollbar-thumb { background: #1e1e3a; border-radius: 4px; }
+      /* Loading screen */
+      #loading {
+        position: fixed; inset: 0;
+        background: #070710;
+        display: flex; align-items: center; justify-content: center;
+        flex-direction: column; gap: 16px;
+        z-index: 9999;
+        transition: opacity 0.5s;
+      }
+      #loading.hidden { opacity: 0; pointer-events: none; }
+      #loading-text {
+        color: #C9A84C;
+        font-family: 'Georgia', serif;
+        font-size: 22px;
+        letter-spacing: 4px;
+      }
+      #loading-sub {
+        color: #475569;
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>Vous devez activer JavaScript pour utiliser Multiwave.</noscript>
+
+    <!-- Loading screen -->
+    <div id="loading">
+      <div id="loading-text">MULTIWAVE</div>
+      <div id="loading-sub">connect · explore</div>
+    </div>
+
+    <div id="root"></div>
+
+    <script>
+      // Masquer le loading screen quand React est prêt
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const loading = document.getElementById('loading');
+          if (loading) {
+            loading.classList.add('hidden');
+            setTimeout(() => loading.remove(), 500);
+          }
+        }, 800);
+      });
+    </script>
+  </body>
+</html>
