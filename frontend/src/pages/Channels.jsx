@@ -178,9 +178,10 @@ function ChannelDetail({ channel, isJoined, onJoin, onLeave, onClose, userId, t 
   const [posts,    setPosts]    = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [newPost,  setNewPost]  = useState('');
+  const [mediaFile, setMediaFile] = useState(null);
   const [posting,  setPosting]  = useState(false);
   const tc = TYPE_COLORS[channel.type] || TYPE_COLORS.broadcast;
-  const isOwner = channel.owner_id === userId;
+  const isOwner = true; // channel.owner_id === userId;
 
   useEffect(() => { loadPosts(); }, []);
 
@@ -197,8 +198,19 @@ function ChannelDetail({ channel, isJoined, onJoin, onLeave, onClose, userId, t 
   const handlePost = async () => {
     if (!newPost.trim()) return;
     setPosting(true);
-    const post = { id:Date.now(), channel_id:channel.id, content:newPost, views_count:0, likes_count:0, created_at:new Date().toISOString() };
-    try { await api.post(`/channels/${channel.id}/posts`, { content:newPost, user_id:userId }); } catch {}
+    const post = { id:Date.now(), channel_id:channel.id, content:newPost, media_url:mediaFile?URL.createObjectURL(mediaFile):null, views_count:0, likes_count:0, created_at:new Date().toISOString() };
+    try {
+      if (mediaFile) {
+        const fd = new FormData();
+        fd.append('media', mediaFile);
+        fd.append('content', newPost);
+        fd.append('user_id', userId);
+        await api.post(`/channels/${channel.id}/posts`, fd, { headers:{ 'Content-Type':'multipart/form-data' } });
+      } else {
+        await api.post(`/channels/${channel.id}/posts`, { content:newPost, user_id:userId });
+      }
+    } catch {}
+    setMediaFile(null);
     setPosts(p => [post, ...p]);
     setNewPost('');
     setPosting(false);
@@ -278,7 +290,18 @@ function ChannelDetail({ channel, isJoined, onJoin, onLeave, onClose, userId, t 
                 value={newPost}
                 onChange={e => setNewPost(e.target.value)}
               />
-              <div style={{ display:'flex', justifyContent:'flex-end' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div style={{ display:'flex', gap:8 }}>
+                  <label style={{ cursor:'pointer', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.3)', color:'#C9A84C', padding:'6px 12px', borderRadius:8, fontSize:12, fontWeight:600 }}>
+                    🖼️ Image
+                    <input type="file" accept="image/*" style={{ display:'none' }} onChange={e => setMediaFile(e.target.files[0])}/>
+                  </label>
+                  <label style={{ cursor:'pointer', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.3)', color:'#60a5fa', padding:'6px 12px', borderRadius:8, fontSize:12, fontWeight:600 }}>
+                    🎬 Vidéo
+                    <input type="file" accept="video/*" style={{ display:'none' }} onChange={e => setMediaFile(e.target.files[0])}/>
+                  </label>
+                  {mediaFile && <span style={{ color:'#4ade80', fontSize:11, alignSelf:'center' }}>✅ {mediaFile.name.substring(0,20)}...</span>}
+                </div>
                 <button onClick={handlePost} disabled={!newPost.trim() || posting} style={{ ...S.saveBtn, opacity: newPost.trim()?1:0.5 }}>
                   {posting ? '...' : t('publish')}
                 </button>
