@@ -141,6 +141,7 @@ function GroupDetail({ group, isJoined, onJoin, onLeave, onClose, userId }) {
   const [loading,   setLoading]   = useState(true);
   const [newPost,   setNewPost]   = useState('');
   const [posting,   setPosting]   = useState(false);
+  const [mediaFile,  setMediaFile]  = useState(null);
   const vs      = VIS_COLORS[group.visibility] || VIS_COLORS.public;
   const isOwner = group.owner_id === userId;
 
@@ -165,8 +166,21 @@ function GroupDetail({ group, isJoined, onJoin, onLeave, onClose, userId }) {
   const handlePost = async () => {
     if (!newPost.trim()) return;
     setPosting(true);
-    const post = { id:Date.now(), group_id:group.id, user_id:userId, content:newPost, likes_count:0, comments_count:0, created_at:new Date().toISOString(), author:{ username:'Moi' } };
-    try { await api.post(`/groups/${group.id}/posts`, { content:newPost, user_id:userId }); } catch {}
+    const media_url = mediaFile ? URL.createObjectURL(mediaFile) : null;
+    const media_type = mediaFile ? (mediaFile.type.startsWith('video') ? 'video' : mediaFile.type.startsWith('audio') ? 'audio' : 'image') : 'none';
+    const post = { id:Date.now(), group_id:group.id, user_id:userId, content:newPost, media_url, media_type, likes_count:0, comments_count:0, created_at:new Date().toISOString(), author:{ username:'Moi' } };
+    try {
+      if (mediaFile) {
+        const fd = new FormData();
+        fd.append('media', mediaFile);
+        fd.append('content', newPost);
+        fd.append('user_id', userId);
+        await api.post(`/groups/${group.id}/posts`, fd, { headers:{ 'Content-Type':'multipart/form-data' } });
+      } else {
+        await api.post(`/groups/${group.id}/posts`, { content:newPost, user_id:userId });
+      }
+    } catch {}
+    setMediaFile(null);
     setPosts(p => [post, ...p]);
     setNewPost('');
     setPosting(false);
@@ -249,7 +263,22 @@ function GroupDetail({ group, isJoined, onJoin, onLeave, onClose, userId }) {
                     value={newPost}
                     onChange={e => setNewPost(e.target.value)}
                   />
-                  <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <label style={{ cursor:'pointer', background:'rgba(201,168,76,0.1)', border:'1px solid rgba(201,168,76,0.3)', color:'#C9A84C', padding:'6px 12px', borderRadius:8, fontSize:12, fontWeight:600 }}>
+                        🖼️ Image
+                        <input type="file" accept="image/*" style={{ display:'none' }} onChange={e => setMediaFile(e.target.files[0])}/>
+                      </label>
+                      <label style={{ cursor:'pointer', background:'rgba(96,165,250,0.1)', border:'1px solid rgba(96,165,250,0.3)', color:'#60a5fa', padding:'6px 12px', borderRadius:8, fontSize:12, fontWeight:600 }}>
+                        🎬 Vidéo
+                        <input type="file" accept="video/*" style={{ display:'none' }} onChange={e => setMediaFile(e.target.files[0])}/>
+                      </label>
+                      <label style={{ cursor:'pointer', background:'rgba(167,139,250,0.1)', border:'1px solid rgba(167,139,250,0.3)', color:'#a78bfa', padding:'6px 12px', borderRadius:8, fontSize:12, fontWeight:600 }}>
+                        🎵 Audio
+                        <input type="file" accept="audio/*" style={{ display:'none' }} onChange={e => setMediaFile(e.target.files[0])}/>
+                      </label>
+                      {mediaFile && <span style={{ color:'#4ade80', fontSize:11, alignSelf:'center' }}>✅ {mediaFile.name.substring(0,15)}...</span>}
+                    </div>
                     <button onClick={handlePost} disabled={!newPost.trim()||posting} style={{ ...S.saveBtn, opacity:newPost.trim()?1:0.5 }}>
                       {posting ? '...' : '📝 Publier'}
                     </button>
@@ -271,6 +300,18 @@ function GroupDetail({ group, isJoined, onJoin, onLeave, onClose, userId }) {
                        </div>
                      </div>
                      <div style={{ color:'#cbd5e1', fontSize:13, lineHeight:1.7, marginBottom:10 }}>{post.content}</div>
+                     {post.media_url && post.media_type === 'image' && (
+                       <img src={post.media_url} alt="" style={{ width:'100%', borderRadius:8, maxHeight:300, objectFit:'cover', marginBottom:10 }} onError={e=>e.target.style.display='none'}/>
+                     )}
+                     {post.media_url && post.media_type === 'video' && (
+                       <video src={post.media_url} controls style={{ width:'100%', borderRadius:8, maxHeight:300, marginBottom:10 }}/>
+                     )}
+                     {post.media_url && post.media_type === 'audio' && (
+                       <div style={{ display:'flex', alignItems:'center', gap:10, background:'#0a0a0f', borderRadius:8, padding:'10px 14px', marginBottom:10 }}>
+                         <span style={{ fontSize:24 }}>🎵</span>
+                         <audio src={post.media_url} controls style={{ flex:1 }}/>
+                       </div>
+                     )}
                      <div style={{ display:'flex', gap:16 }}>
                        <span style={{ color:'#475569', fontSize:12 }}>❤️ {post.likes_count}</span>
                        <span style={{ color:'#475569', fontSize:12 }}>💬 {post.comments_count}</span>
