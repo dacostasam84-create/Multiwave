@@ -316,18 +316,47 @@ function ChannelDetail({ channel, isJoined, onJoin, onLeave, onClose, userId, t 
             ) : posts.length === 0 ? (
               <div style={S.empty}>{t('no_posts')}</div>
             ) : (
-              posts.map(post => (
-                <div key={post.id} style={{ background:'#13131a', border:'1px solid #1e1e2e', borderRadius:10, padding:14 }}>
-                  <div style={{ color:'#cbd5e1', fontSize:13, lineHeight:1.7, marginBottom:10 }}>{post.content}</div>
-                  {post.media_url && (
-                    <img src={post.media_url} alt="" style={{ width:'100%', borderRadius:8, maxHeight:200, objectFit:'cover', marginBottom:10 }} onError={e=>e.target.style.display='none'}/>
-                  )}
-                  <div style={{ display:'flex', gap:16, alignItems:'center' }}>
-                    <span style={{ color:'#334155', fontSize:12 }}>👁 {fmtCount(post.views_count)}</span>
-                    <span style={{ color:'#334155', fontSize:12 }}>❤️ {fmtCount(post.likes_count)}</span>
-                    <span style={{ color:'#334155', fontSize:12, marginLeft:'auto' }}>{timeAgo(post.created_at)}</span>
+              posts.map((post, idx) => (
+                <React.Fragment key={post.id}>
+                  <div style={{ background:'#13131a', border:'1px solid #1e1e2e', borderRadius:10, padding:14 }}>
+                    <div style={{ color:'#cbd5e1', fontSize:13, lineHeight:1.7, marginBottom:10 }}>{post.content}</div>
+                    {post.media_url && (
+                      <img src={post.media_url} alt="" style={{ width:'100%', borderRadius:8, maxHeight:300, objectFit:'cover', marginBottom:10 }} onError={e=>e.target.style.display='none'}/>
+                    )}
+                    <div style={{ display:'flex', gap:16, alignItems:'center' }}>
+                      <span style={{ color:'#334155', fontSize:12 }}>👁 {fmtCount(post.views_count)}</span>
+                      <span style={{ color:'#334155', fontSize:12 }}>❤️ {fmtCount(post.likes_count)}</span>
+                      <span style={{ color:'#334155', fontSize:12, marginLeft:'auto' }}>{timeAgo(post.created_at)}</span>
+                    </div>
                   </div>
-                </div>
+                  {(idx + 1) % 3 === 0 && (
+                    <div style={{ background:'linear-gradient(135deg,rgba(201,168,76,0.06),rgba(245,216,122,0.03))', border:'1px solid rgba(201,168,76,0.2)', borderRadius:10, padding:14, position:'relative' }}>
+                      <div style={{ position:'absolute', top:8, right:10, background:'rgba(201,168,76,0.15)', border:'1px solid rgba(201,168,76,0.3)', color:'#C9A84C', fontSize:9, padding:'2px 6px', borderRadius:4, fontWeight:700, letterSpacing:'0.5px' }}>SPONSORISÉ</div>
+                      <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+                        <div style={{ width:48, height:48, borderRadius:10, background:'linear-gradient(135deg,#C9A84C,#F5D87A)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
+                          {['👜','👟','📱','⌚','👔'][idx % 5]}
+                        </div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ color:'#e2e8f0', fontWeight:700, fontSize:13, marginBottom:3 }}>
+                            {['Louis Vuitton — Nouvelle Collection','Nike Air Max 2026','Apple iPhone 17 Pro','Rolex Submariner','Dior Homme'][idx % 5]}
+                          </div>
+                          <div style={{ color:'#64748b', fontSize:12 }}>
+                            {['Découvrez la collection printemps 2026','Just Do It — Disponible maintenant','Think Different — Précommandez','Luxe & Précision suisse','La nouvelle fragrance masculine'][idx % 5]}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ marginTop:10, height:100, borderRadius:8, overflow:'hidden', background:'#0a0a0f' }}>
+                        <img src={`https://picsum.photos/seed/ad${idx}/600/100`} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', opacity:0.8 }}/>
+                      </div>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:10 }}>
+                        <span style={{ color:'#475569', fontSize:11 }}>multiwave ads</span>
+                        <button style={{ background:'linear-gradient(135deg,#C9A84C,#F5D87A)', color:'#1a1200', border:'none', padding:'5px 14px', borderRadius:6, fontSize:11, fontWeight:700, cursor:'pointer' }}>
+                          Voir l'offre →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
               ))
             )}
           </div>
