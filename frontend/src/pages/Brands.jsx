@@ -48,10 +48,10 @@ const AD_FORMATS       = [{ value:'image', label:'🖼️ Image' },{ value:'vide
 // MOCK DATA
 // ─────────────────────────────────────────────
 const MOCK_BRANDS = [
-  { id:1, user_id:1, name:'Louis Vuitton',      logo_url:'https://logo.clearbit.com/louisvuitton.com', category:'Tech',   description:'Solutions tech pour entreprises.', followers_count:48200000, is_verified:true,  is_active:true,  country:'France', website:'https://louisvuitton.com' },
-  { id:2, user_id:1, name:'Nike',      logo_url:'https://logo.clearbit.com/nike.com', category:'Beauté', description:'Cosmétiques bio 100% naturels.',   followers_count:92500000, is_verified:true,  is_active:true,  country:'USA', website:'https://nike.com' },
-  { id:3, user_id:2, name:'Chanel',logo_url:'https://logo.clearbit.com/chanel.com', category:'Mode',   description:'Studio de design & création.',     followers_count:55100000, is_verified:false, is_active:true,  country:'France', website:null },
-  { id:4, user_id:2, name:'Dior',     logo_url:'https://logo.clearbit.com/dior.com', category:'Finance',description:'Fintech pour le Maghreb.',         followers_count:41200000, is_verified:true,  is_active:false, country:'Maroc',  website:'https://startupma.com' },
+  { id:1, user_id:1, name:'Louis Vuitton',      logo_url:null, category:'Tech',   description:'Solutions tech pour entreprises.', followers_count:48200000, is_verified:true,  is_active:true,  country:'France', website:'https://louisvuitton.com' },
+  { id:2, user_id:1, name:'Nike',      logo_url:null, category:'Beauté', description:'Cosmétiques bio 100% naturels.',   followers_count:92500000, is_verified:true,  is_active:true,  country:'USA', website:'https://nike.com' },
+  { id:3, user_id:2, name:'Chanel',logo_url:null, category:'Mode',   description:'Studio de design & création.',     followers_count:55100000, is_verified:false, is_active:true,  country:'France', website:null },
+  { id:4, user_id:2, name:'Dior',     logo_url:null, category:'Finance',description:'Fintech pour le Maghreb.',         followers_count:41200000, is_verified:true,  is_active:false, country:'Maroc',  website:'https://startupma.com' },
 ];
 
 const MOCK_FEEDS = [
