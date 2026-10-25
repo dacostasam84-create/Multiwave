@@ -9,6 +9,7 @@ const sequelize = new Sequelize(
     host: process.env.MYSQL_HOST || "localhost",
     port: parseInt(process.env.MYSQL_PORT) || 3306,
     dialect: "mysql",
+    dialectOptions: process.env.MYSQL_SSL === "true" ? { ssl: { rejectUnauthorized: false } } : {},
     logging: false,
     timezone: "+00:00",
     define: {
