@@ -5,15 +5,20 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Dossiers pour les uploads
+// Dossiers pour les uploads.
+// Sur Vercel, seul /tmp est adapté aux écritures temporaires.
+const uploadBase = process.env.VERCEL
+  ? "/tmp/multiwave/uploads"
+  : path.join(__dirname, "../../uploads");
+
 const uploads = {
-  images: path.join(__dirname, "../../uploads/images"),
-  videos: path.join(__dirname, "../../uploads/videos"),
-  audios: path.join(__dirname, "../../uploads/audios"),
-  whispers: path.join(__dirname, "../../uploads/whisper"),
+  images: path.join(uploadBase, "images"),
+  videos: path.join(uploadBase, "videos"),
+  audios: path.join(uploadBase, "audios"),
+  whispers: path.join(uploadBase, "whisper"),
   whatsapp: {
-    root: path.join(__dirname, "../../uploads/whatsapp/root"),
-    camera: path.join(__dirname, "../../uploads/whatsapp/camera")
+    root: path.join(uploadBase, "whatsapp/root"),
+    camera: path.join(uploadBase, "whatsapp/camera")
   }
 };
 

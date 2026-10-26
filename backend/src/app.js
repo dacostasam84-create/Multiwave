@@ -81,7 +81,10 @@ app.use('/api/uploads',        rateLimit({ windowMs: 60*60*1000, max: 20 }));
 // ===============================
 // Static Uploads Folder
 // ===============================
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const staticUploadsDir = process.env.VERCEL
+  ? '/tmp/multiwave/uploads'
+  : path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(staticUploadsDir));
 
 // ===============================
 // API Routes — Existantes
