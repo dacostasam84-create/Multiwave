@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const BACKEND_URL = 'http://127.0.0.1:3000';
+const BACKEND_URL = process.env.REACT_APP_SOCKET_URL || window.location.origin;
 
 let socket = null;
 

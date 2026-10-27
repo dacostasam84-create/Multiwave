@@ -23,7 +23,7 @@ class CallsService {
   static async listParticipants(callId) {
     return await db.CallParticipant.findAll({
       where: { call_id: callId },
-      include: [{ model: db.User, as: 'user', attributes: ['id', 'username', 'avatar_url'] }],
+      include: [{ model: db.User, as: 'user', attributes: ['id', 'username', 'avatar'] }],
       order: [['joined_at', 'ASC']]
     });
   }

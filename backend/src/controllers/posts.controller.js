@@ -42,6 +42,7 @@ module.exports = {
       const posts = await PostsService.getAllPosts();
       res.json(posts);
     } catch (err) {
+      console.error('getAllPosts:', err.message, err.parent && err.parent.sqlMessage);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   },

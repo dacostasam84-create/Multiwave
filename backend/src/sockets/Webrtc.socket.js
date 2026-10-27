@@ -4,7 +4,7 @@ const path = require('path');
 const FormData = require('form-data');
 const axios = require('axios');
 const ffmpeg = require('fluent-ffmpeg');
-const STT = require('../models/STT.model');
+const STT = require('../models/Stt.model');
 const Users = require('../models/Users.model');
 const PYTHON_API_URL = process.env.PYTHON_API_URL || 'http://127.0.0.1:5000';
 

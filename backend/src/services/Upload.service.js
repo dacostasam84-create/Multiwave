@@ -1,6 +1,7 @@
 const UploadModel = require("../models/Upload.model"); 
 const fs = require("fs");                              
 const path = require("path");                          
+const { uploadDir: ensureUploadDir } = require("../config/paths");
 
 class UploadsService {
   static ensureDir(dir) {
@@ -10,7 +11,7 @@ class UploadsService {
   static saveFile(file, folder, userId) {
     if (!file) throw new Error('Aucun fichier reçu');
 
-    const uploadDir = path.join(__dirname, `../../uploads/${folder}`);
+    const uploadDir = ensureUploadDir(folder);
     this.ensureDir(uploadDir);
 
     const safeName = file.originalname.replace(/[^a-z0-9.-]/gi, "_").toLowerCase();

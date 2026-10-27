@@ -7,8 +7,8 @@ const fs = require("fs");
 const path = require("path");                                   
 
 // ⚡ Services STT/TTS
-const STTService = require(path.join(__dirname, 'whisper', 'stt'));
-const TTSService = require(path.join(__dirname, 'whisper', 'tts'));
+const STTService = require(path.join(__dirname, 'Whisper', 'stt'));
+const TTSService = require(path.join(__dirname, 'Whisper', 'tts'));
 
 // ⚡ Modèle Whisper depuis l'index centralisé
 const WhisperModel = require("../models/Whisper.model");

@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 // Contrôleur principal
-const WhatsappController = require('../controllers/Whatsapp.controller');
+const WhatsappController = require('../controllers/whatsapp.controller');
 
 // Middlewares
 const authMiddleware = require('../middlewares/auth.middleware');

@@ -1,5 +1,5 @@
 'use strict';
-const Notifications = require('../models/Notifications.model');
+const Notifications = require('../models/notifications.model');
 const Users = require('../models/Users.model');
 
 module.exports = (io, socket) => {

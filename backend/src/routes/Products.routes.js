@@ -6,12 +6,12 @@ const fs = require('fs');
 const multer = require('multer');
 const ProductsController = require('../controllers/products.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
+const { uploadDir } = require('../config/paths');
 
-const uploadDir = path.join(__dirname, '../../uploads/products');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+const productsDir = uploadDir('products');
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
+  destination: (req, file, cb) => cb(null, productsDir),
   filename: (req, file, cb) => {
     const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
     cb(null, `${Date.now()}-${safeName}`);

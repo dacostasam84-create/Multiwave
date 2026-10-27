@@ -21,7 +21,7 @@ class BrandsService {
   // Récupérer toutes les marques actives
   static async getAllBrands() {
     return await db.Brand.findAll({
-      where: { status: 'active' },
+      where: { is_active: true },
       order: [['created_at', 'DESC']]
     });
   }
@@ -51,7 +51,7 @@ class BrandsService {
     const brand = await db.Brand.findOne({ where: { id, owner_id } });
     if (!brand) throw new Error('Marque non trouvée');
 
-    await brand.update({ status: 'inactive' });
+    await brand.update({ is_active: false });
     return true;
   }
 }

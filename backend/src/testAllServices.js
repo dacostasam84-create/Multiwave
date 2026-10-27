@@ -7,8 +7,8 @@ const path = require('path');
 const WhatsappService = require('./services/Whatsapp');
 const WhispersService = require('./services/whisper/stt'); // STT
 const TtsService = require('./services/whisper/tts');       // TTS
-const WebRTCService = require('./services/webrtc.service');
-const PythonService = require('./services/python.service');  // <-- notre service Python
+const WebRTCService = require('./services/Webrtc.service');
+const PythonService = require('./services/Python.service');  // <-- notre service Python
 
 // -------------------------
 // Fichiers de test

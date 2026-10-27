@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 // Contrôleur Ads
-const AdsController = require("../controllers/Ads.controller");
+const AdsController = require("../controllers/ads.controller");
 
 // Middlewares nécessaires
 const authMiddleware = require("../middlewares/auth.middleware"); // authentification

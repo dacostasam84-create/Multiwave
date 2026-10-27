@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
           ],
           status: 'active',
         },
-        attributes: ['id', 'name', 'price', 'currency', 'location', 'is_verified'],
+        attributes: ['id', 'name', 'price', 'currency', 'location'],
         limit: 5,
         order: [['created_at', 'DESC']],
       });
@@ -80,7 +80,7 @@ router.get('/', async (req, res) => {
         title:    p.name,
         sub:      p.location || 'Multiwave',
         meta:     `${p.price} ${p.currency || 'USD'}`,
-        verified: p.is_verified,
+        verified: false,
       }));
     }
 
@@ -116,7 +116,7 @@ router.get('/', async (req, res) => {
             { description: { [Op.like]: search } },
           ],
         },
-        attributes: ['id', 'name', 'description', 'subscribers_count', 'is_verified', 'language'],
+        attributes: ['id', 'name', 'description', 'subscribers_count', 'is_verified'],
         limit: 5,
       });
       results.channels = channels.map(c => ({

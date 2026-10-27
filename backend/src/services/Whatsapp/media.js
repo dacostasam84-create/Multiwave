@@ -24,7 +24,7 @@ function fileExists(filePath) {
  * @returns {string} chemin complet du fichier
  */
 function saveMedia(buffer, filename) {
-  const uploadDir = path.join(__dirname, '../../uploads/whatsapp');
+  const uploadDir = require('../../config/paths').uploadDir('whatsapp');
 
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });

@@ -14,7 +14,7 @@ class WhatsAppCameraService {
       throw new Error('Données caméra manquantes');
     }
 
-    const uploadDir = path.join(__dirname, '../../../uploads/whatsapp/camera');
+    const uploadDir = require('../../config/paths').uploadDir('whatsapp/camera');
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
     const filename = `camera_${Date.now()}.png`;

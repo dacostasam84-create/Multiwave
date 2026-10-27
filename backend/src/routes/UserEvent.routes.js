@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const { authMiddleware } = require("../middlewares/auth.middleware");
-const UserEventController = require("../controllers/userEvent.controller"); // ⚡ nom correct
+const UserEventController = require("../controllers/userevent.controller"); // ⚡ nom correct
 
 // Ajouter un événement utilisateur
 router.post('/', authMiddleware, UserEventController.addEvent);

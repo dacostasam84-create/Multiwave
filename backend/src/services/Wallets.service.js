@@ -1,7 +1,7 @@
 'use strict';
 
 // ⚠ Import correct du modèle Wallet
-const Wallet = require('../models/wallets.model'); // <-- nom exact du fichier
+const Wallet = require('../models/Wallets.model'); // <-- nom exact du fichier
 
 class WalletsService {
   // Récupérer le portefeuille par user

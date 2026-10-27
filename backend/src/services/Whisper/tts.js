@@ -11,8 +11,8 @@ async function textToSpeech(text) {
     throw new Error("Texte requis pour TTS");
   }
 
-  // Chemin absolu vers backend/uploads/whispers
-  const uploadDir = path.join(__dirname, "../../../uploads/whispers");
+  // Chemin absolu vers le dossier des audios générés
+  const uploadDir = require('../../config/paths').uploadDir('whispers');
 
   // Créer le dossier s'il n'existe pas
   if (!fs.existsSync(uploadDir)) {

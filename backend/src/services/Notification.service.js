@@ -1,5 +1,5 @@
 'use strict';
-const Notifications = require('../models/Notifications.model');
+const Notifications = require('../models/notifications.model');
 
 const NotificationService = {
   async send(io, { userId, fromUserId, type, content, referenceId, referenceType }) {

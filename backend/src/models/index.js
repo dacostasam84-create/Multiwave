@@ -48,6 +48,13 @@ fs.readdirSync(__dirname)
     }
   });
 
+// Alias singuliers pour compatibilité avec le code existant (db.User -> db.Users, db.Post -> db.Posts, ...)
+Object.keys(db).forEach(key => {
+  if (key.endsWith('s') && !key.endsWith('Status') && !db[key.slice(0, -1)]) {
+    db[key.slice(0, -1)] = db[key];
+  }
+});
+
 // Associations apres chargement complet
 Object.values(db).forEach(model => {
   if (typeof model.associate === "function") {
@@ -61,5 +68,8 @@ Object.values(db).forEach(model => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+// Compatibilité : plusieurs services historiques utilisent `db.X` sans l'importer.
+global.db = db;
 
 module.exports = db;

@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const FormData = require("form-data");
 const axios = require("axios");
-const STT = require('../models/STT.model');
+const STT = require('../models/Stt.model');
 const User = require('../models/Users.model');
 
 const PYTHON_API_URL = "http://127.0.0.1:5000";
@@ -13,7 +13,7 @@ class STTService {
     if (!audioFile) throw new Error('Fichier audio requis');
 
     const audioFileName = `${Date.now()}-${audioFile.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const uploadDir = path.join(__dirname, '../../uploads/stt');
+    const uploadDir = require('../config/paths').uploadDir('stt');
 
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 

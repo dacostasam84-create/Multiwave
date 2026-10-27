@@ -29,7 +29,7 @@ class MessageStatusService {
         {
           model: db.User,
           as: 'user',
-          attributes: ['id', 'username', 'avatar_url']
+          attributes: ['id', 'username', 'avatar']
         }
       ],
       order: [['updated_at', 'ASC']]

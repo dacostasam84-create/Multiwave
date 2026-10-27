@@ -22,7 +22,7 @@ class CommentsService {
         {
           model: db.User,
           as: 'user',
-          attributes: ['id', 'username', 'avatar_url']
+          attributes: ['id', 'username', 'avatar']
         }
       ],
       order: [['created_at', 'ASC']]

@@ -1,6 +1,8 @@
 const PostsModel = require("../models/Posts.model");         
 const UsersModel = require("../models/Users.model");         
 const ImagesModel = require("../models/Images.model");       
+const fs = require("fs");
+const path = require("path");
 class PostsService {
 
   static async createPost({ userId, content, media, mediaType, status }) {
@@ -23,7 +25,7 @@ class PostsService {
         {
           model: db.User,
           as: 'author',
-          attributes: ['id', 'username', 'avatar_url']
+          attributes: ['id', 'username', 'avatar']
         },
         {
           model: db.Like,
@@ -42,7 +44,7 @@ class PostsService {
         {
           model: db.User,
           as: 'author',
-          attributes: ['id', 'username', 'avatar_url']
+          attributes: ['id', 'username', 'avatar']
         },
         {
           model: db.Like,
@@ -60,7 +62,7 @@ class PostsService {
     }
 
     if (post.media) {
-      const filePath = path.join(__dirname, '../../uploads/posts', post.media);
+      const filePath = path.join(require('../config/paths').UPLOADS_DIR, 'posts', post.media);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 

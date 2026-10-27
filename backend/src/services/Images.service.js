@@ -1,8 +1,9 @@
 const ImagesModel = require("../models/Images.model"); 
 const fs = require("fs");                              
 const path = require("path");                          
+const { uploadDir } = require("../config/paths");
 
-const UPLOAD_DIR = path.join(__dirname, '../../uploads/images');
+const UPLOAD_DIR = uploadDir('images');
 
 class ImagesService {
 

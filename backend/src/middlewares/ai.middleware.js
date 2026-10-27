@@ -1,4 +1,4 @@
-const AiService = require("../services/ai.service");
+const AiService = require("../services/AiLog.service");
 
 module.exports = async (req, res, next) => {
   if (!req.body?.content) return next();

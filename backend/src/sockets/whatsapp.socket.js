@@ -6,7 +6,7 @@ const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
 const os = require('os');
 const WhatsappService = require('../services/Whatsapp.service');
-const STT = require('../models/STT.model');
+const STT = require('../models/Stt.model');
 const logger = console;
 
 // Convertit buffer audio en WAV 16kHz mono pour Whisper

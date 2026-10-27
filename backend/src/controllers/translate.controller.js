@@ -1,6 +1,6 @@
-// require('')
-// require('')
-// require('')
+const path = require('path');
+const fs = require('fs');
+const TranslateService = require('../services/Translate.service');
 
 const TranslateController = {
   // Traduction texte
@@ -23,7 +23,7 @@ const TranslateController = {
       if (!req.file) return res.status(400).json({ error: 'Fichier audio requis' });
 
       const audioFileName = `${Date.now()}-${req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const uploadDir = path.join(__dirname, '../../uploads/translate');
+      const uploadDir = require('../config/paths').uploadDir('translate');
       if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
       const filePath = path.join(uploadDir, audioFileName);

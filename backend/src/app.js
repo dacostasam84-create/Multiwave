@@ -15,20 +15,20 @@ const path    = require('path');
 const callsRoutes     = require('./routes/Calls.routes');
 const likesRoutes     = require('./routes/Likes.routes');
 const postsRoutes     = require('./routes/Posts.routes');
-const usersRoutes     = require('./routes/users.routes');
+const usersRoutes     = require('./routes/Users.routes');
 const groupsRoutes    = require('./routes/Groups.routes');
 const ordersRoutes    = require('./routes/Orders.routes');
 const uploadRoutes    = require('./routes/Upload.routes');
 const walletsRoutes   = require('./routes/Wallets.routes');
 const commentsRoutes  = require('./routes/Comments.routes');
-const messagesRoutes  = require('./routes/messages.routes');
-const productsRoutes  = require('./routes/products.routes');
+const messagesRoutes  = require('./routes/Messages.routes');
+const productsRoutes  = require('./routes/Products.routes');
 const followersRoutes = require('./routes/Followers.routes');
-const translateRoutes = require('./routes/translate.routes');
-const sttRoutes       = require('./routes/stt.routes');
-const userstateRoutes = require('./routes/userstate.routes');
-const usereventRoutes = require('./routes/userevent.routes');
-const whatsappRoutes  = require('./routes/whatsapp.routes');
+const translateRoutes = require('./routes/Translate.routes');
+const sttRoutes       = require('./routes/Stt.routes');
+const userstateRoutes = require('./routes/UserState.routes');
+const usereventRoutes = require('./routes/UserEvent.routes');
+const whatsappRoutes  = require('./routes/Whatsapp.routes');
 const aiRoutes        = require('./routes/ai.routes');
 const channelsRoutes  = require('./routes/Channels.routes');
 const webrtcRoutes    = require('./routes/Webrtc.routes');
@@ -38,18 +38,18 @@ const imagesRoutes    = require('./routes/Images.routes');
 const adsRoutes       = require('./routes/Ads.routes');
 const whisperRoutes   = require('./routes/Whisper.routes');
 const audioRoutes     = require('./routes/Audio.routes');
-const searchRoutes = require('./routes/search.routes');
+const searchRoutes = require('./routes/Search.routes');
 const rateLimit = require('./middlewares/rateLimit.middleware');
 // ===============================
 // Nouvelles routes
 // ===============================
-const feedRoutes = require('./routes/feed.routes');
+const feedRoutes = require('./routes/Feed.routes');
 const notificationsRoutes = require('./routes/Notifications.routes');
 const brandsRoutes        = require('./routes/Brand.routes');
 const brandFeedsRoutes    = require('./routes/BrandFeed.routes');
 const analyticsRoutes     = require('./routes/Analytics.routes');
 const jobsRoutes          = require('./routes/Jobs.routes');
-const walletRoutes = require('./routes/wallets.routes');
+const walletRoutes = require('./routes/Wallets.routes');
 const datingRoutes        = require('./routes/Dating.routes');
 
 // ===============================
@@ -135,7 +135,7 @@ app.get('/', (req, res) =>
   res.send('🚀 API Multiwave fonctionne correctement')
 );
 
-app.get('/health', (req, res) =>
+app.get(['/health', '/api/health'], (req, res) =>
   res.json({
     status:    'OK',
     service:   'Multiwave Backend',

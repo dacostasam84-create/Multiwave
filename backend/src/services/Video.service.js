@@ -1,6 +1,8 @@
 const VideoModel = require("../models/Video.model");         
 const UsersModel = require("../models/Users.model");         
 const UploadModel = require("../models/Upload.model");       
+const fs = require("fs");
+const path = require("path");
 
 class VideoService {
   static async uploadVideo({ userId, file, duration }) {
@@ -24,8 +26,8 @@ class VideoService {
     if (!video) throw new Error('Vidéo introuvable');
 
     const filePath = path.join(
-      __dirname,
-      '../../uploads/videos',
+      require('../config/paths').UPLOADS_DIR,
+      'videos',
       video.filename
     );
 
